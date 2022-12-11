@@ -1,0 +1,25 @@
+optimizer:
+  _target_: torch.optim.AdamW
+  lr: 1e-4
+  betas: 
+    - 0.9
+    - 0.999
+
+scheduler:
+  _target_: torch.optim.lr_scheduler.StepLR 
+  step_size: 30
+  gamma: 0.1
+
+
+loss:
+  _target_: losses.focus_loss.FocusLoss
+  config:
+    reduction: mean
+    beta: 1.0
+
+metrics:
+  _target_: metrics.focus_metrics.FocusMetrics
+  config:
+    min: -10500
+    max: 10500
+    step: 50

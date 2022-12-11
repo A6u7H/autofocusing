@@ -1,0 +1,48 @@
+train_dataset: 
+  _target_: dataset.focusdataset.FocusingDataset
+  pattern: Seg(\d+)_defocus(\-?\d+)
+  data_path: /home/dkrivenkov/program/autofocusing/data/data_channel/incoherent_RGBchannels/train_incoherent_RGBChannels
+
+val_dataset_same: 
+  _target_: dataset.focusdataset.FocusingDataset
+  pattern: defocus(\-?\d+)
+  data_path: /home/dkrivenkov/program/autofocusing/data/data_channel/incoherent_RGBchannels/testRawData_incoherent_sameProtocol
+
+val_dataset_diff: 
+  _target_: dataset.focusdataset.FocusingDataset
+  pattern: defocus(\-?\d+)
+  data_path: /home/dkrivenkov/program/autofocusing/data/data_channel/incoherent_RGBchannels/testRawData_incoherent_diffProtocol
+
+train_dataloader:
+  _target_: torch.utils.data.DataLoader
+  batch_size: 128
+  drop_last: true
+  num_workers: 10
+
+val_dataloader:
+  _target_: torch.utils.data.DataLoader
+  batch_size: 128
+  num_workers: 10
+
+
+train_transform:
+  _target_: dataset.utils.TrainFocusingTransform
+  mean: 
+    - 0.485
+    - 0.456
+    - 0.406
+  std:
+    - 0.229
+    - 0.224
+    - 0.225
+
+val_transform:
+  _target_: dataset.utils.ValFocusingTransform
+  mean: 
+    - 0.485
+    - 0.456
+    - 0.406
+  std:
+    - 0.229
+    - 0.224
+    - 0.225
