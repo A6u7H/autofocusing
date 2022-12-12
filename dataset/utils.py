@@ -6,8 +6,10 @@ from torch.utils.data import Dataset
 from albumentations.pytorch import ToTensorV2
 
 
-def split_dataset(dataset: Dataset, ):
-    train_set, val_set = torch.utils.data.random_split(dataset, [0.8, 0.2], generator=torch.Generator().manual_seed(42))
+def split_dataset(dataset: Dataset):
+    train_size = int(len(dataset) * 0.8)
+    val_size = len(dataset) - train_size
+    train_set, val_set = torch.utils.data.random_split(dataset, [train_size, val_size], generator=torch.Generator().manual_seed(42))
     return train_set, val_set
 
 class TrainFocusingTransform:
