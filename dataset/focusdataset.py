@@ -1,5 +1,6 @@
 import torch
 import cv2
+import numpy as np
 import re
 import matplotlib.pyplot as plt
 
@@ -10,14 +11,15 @@ from typing import Optional, Any, Tuple
 
 class FocusingDataset(Dataset):
     def __init__(self, 
-                data_path: str, 
+                images_data: np.ndarray, 
                 pattern: str,
                 transform: Optional[Any]=None,
                 target_transform: Optional[Any]=None) -> None:
 
-        self.data_path = Path(data_path)
+        # self.data_path = Path(data_path)
         self.pattern = pattern
-        self.images_data = self.get_image_paths()
+        # self.images_data = self.get_image_paths()
+        self.images_data = images_data
 
         self.transform = transform
         self.target_transform = target_transform
@@ -30,7 +32,6 @@ class FocusingDataset(Dataset):
         image_path = str(self.images_data[idx])
         image_name = image_path.split("/")[-1]
 
-        # pattern = "Seg(\d+)_defocus(\-?\d+)"
         match = re.search(self.pattern, image_name)
         if match:
             if len(match.groups()) == 2:

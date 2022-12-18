@@ -11,6 +11,7 @@ class Solver(pl.LightningModule):
     def __init__(self, config: DictConfig) -> None:
         super().__init__()
         self.config = config
+        self.focus_loss = instantiate(self.config.optimizer.loss)
         self.model = self.create_model()
 
     def forward(self, x):
@@ -31,8 +32,7 @@ class Solver(pl.LightningModule):
         }
     
     def loss_fn(self, pred: Tensor, target: Tensor) -> Tensor:
-        focus_loss = instantiate(self.config.optimizer.loss)
-        return focus_loss(pred, target)
+        return self.focus_loss(pred, target)
 
     @torch.no_grad()
     def metric_fn(self, pred: Tensor, target: Tensor) -> Tensor:
@@ -49,55 +49,72 @@ class Solver(pl.LightningModule):
         image, target_focus = batch
         pred_focus = self.model(image)
         loss = self.loss_fn(pred_focus, target_focus)
-        metric = self.metric_fn(pred_focus, target_focus)
+        metrics = self.metric_fn(pred_focus, target_focus)
 
         self.log("train/loss", loss)
         return {
             "loss": loss,
-            "metrics": metric
+            "metrics": metrics
         }
 
     def training_epoch_end(self, outputs) -> None:
-        l1_loss_total = 0
-        total_correct = 0
-        total_number = 0
-        for output in outputs:
-            l1_loss_total += output['metrics']["l1_loss"]
-            total_correct += output['metrics']["correct_pred"]
-            total_number += output['metrics']["total"]
-        train_accuracy = total_correct / total_number
-        l1_loss_total = l1_loss_total / len(outputs)
-        self.log("train/accuracy", train_accuracy)
-        self.log("train/l1_loss", l1_loss_total)
+        l1_losses = torch.tensor([output['metrics']["l1_loss"] for output in outputs])
+        self.log("train/l1_loss_mean", torch.mean(l1_losses))
+        self.log("train/l1_loss_std", torch.std(l1_losses))
 
     def validation_step(self, batch: Tensor, batch_idx: int):
-        dataset_dict = {}
-        for key, value in batch.items():
-            image, target_focus = value
-            pred_focus = self.model(image)
-            loss = self.loss_fn(pred_focus, target_focus)
-            metrics = self.metric_fn(pred_focus, target_focus)
-            self.log(f"{key}_val/loss", loss)
-            dataset_dict[key] = metrics
+        image, target_focus = batch
+        pred_focus = self.model(image)
+        loss = self.loss_fn(pred_focus, target_focus)
+        metrics = self.metric_fn(pred_focus, target_focus)
+        self.log(f"val/loss", loss)
 
         return {
             "loss": loss,
-            "metrics": dataset_dict
+            "metrics": metrics
+        }
+    
+    def img_to_patch(self, image, patch_size, flatten_channels=True):
+        B, C, H, W = image.shape
+        image = image.reshape(B, C, H//patch_size, patch_size, W//patch_size, patch_size)
+        image = image.permute(0, 2, 4, 1, 3, 5)
+        return image.flatten(1,2)
+
+    def test_step(self, batch: Tensor, batch_idx: int):
+        test_info = {}
+        for key, batch_key in batch.items():
+            image, target_focus = batch_key
+            images = self.img_to_patch(image, 224)
+            image_count = images.shape[1]
+            predictions = torch.cat([self.model(images[:, i]) for i in range(image_count)], axis=1)
+
+            pred_focus = torch.median(predictions, dim=1, keepdim=True)[0]
+            loss = self.loss_fn(pred_focus, target_focus)
+            metrics = self.metric_fn(pred_focus, target_focus)
+
+            test_info[key] = {"metrics": metrics, "loss": loss}
+            self.log(f"test/loss", loss)
+
+        return test_info
+
+    def test_epoch_end(self, outputs) -> None:
+        test_metrics = {
+            "same_protocol": [],
+            "diff_protocol": []
         }
 
-    def validation_epoch_end(self, outputs) -> None:
         for output in outputs:
-            accuracy_dict = {}
-            for k, v in output['metrics'].items():
-                if k not in accuracy_dict:
-                    accuracy_dict[k] = [0, 0, 0]
-                accuracy_dict[k][0] += v["l1_loss"]
-                accuracy_dict[k][1] += v["correct_pred"]
-                accuracy_dict[k][2] += v["total"]
-        for k, v in accuracy_dict.items():
-            self.log(f"{k}_val/accuracy", v[1] / v[2])
-            self.log(f"{k}_val/l1_loss", v[0] / len(outputs))
+            test_metrics["same_protocol"].append(output["same_protocol"]["metrics"]["l1_loss"])
+            test_metrics["diff_protocol"].append(output["diff_protocol"]["metrics"]["l1_loss"])
+        
+        for key, metrics in test_metrics.items():
+            self.log(f"test/{key}_l1_loss_mean", torch.mean(torch.tensor(metrics)))
+            self.log(f"test/{key}_l1_loss_std", torch.std(torch.tensor(metrics)))
 
+    def validation_epoch_end(self, outputs) -> None:
+        l1_losses = torch.tensor([output['metrics']["l1_loss"] for output in outputs])
+        self.log("val/l1_loss_mean", torch.mean(l1_losses))
+        self.log("val/l1_loss_std", torch.std(l1_losses))
 
     def fit(self):
         self.log_artifact(".hydra/config.yaml")

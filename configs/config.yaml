@@ -2,10 +2,10 @@ defaults:
 - _self_
 - dataset: rgb_dataset
 - logger: wandb
-- model: mobilenet
+- model: vit
 - trainer: mobilenet
 - optimizer: mobilenet
 - hydra: default
 
 
-task_name: mobilenetv3
+task_name: vit

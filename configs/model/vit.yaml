@@ -1,0 +1,6 @@
+_target_: models.vit.VIT
+config:
+  weights: ViT_B_32_Weights.DEFAULT
+  freeze: false
+  input_dim: 768
+  output_dim: 1

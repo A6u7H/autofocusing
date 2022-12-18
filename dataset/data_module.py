@@ -1,6 +1,7 @@
-from typing import Optional
 import pytorch_lightning as pl
 
+from pathlib import Path
+from typing import Optional
 from torch.utils.data import DataLoader
 from pytorch_lightning.trainer.supporters import CombinedLoader
 from hydra.utils import instantiate
@@ -14,40 +15,57 @@ class DataModule(pl.LightningDataModule):
         self.config = config
 
     def prepare_data(self):
-        pass
+        search_pattern = "**/*.jpg"
+        self.data_rgb_path = Path(self.config.dataset.rgb_data_path)
+        self.data_same_path = Path(self.config.dataset.same_data_path)
+        self.data_diff_path = Path(self.config.dataset.diff_data_path)
+
+        self.rgb_data = [image_paph for image_paph in self.data_rgb_path.glob(search_pattern) if image_paph.is_file()]
+        self.same_data = [image_paph for image_paph in self.data_same_path.glob(search_pattern) if image_paph.is_file()]
+        self.diff_data = [image_paph for image_paph in self.data_diff_path.glob(search_pattern) if image_paph.is_file()]
 
     def setup(self, stage: Optional[str] = None) -> None:
         train_transfrom=instantiate(self.config.dataset.train_transform)
         val_transfrom=instantiate(self.config.dataset.val_transform)
+        test_transfrom = instantiate(self.config.dataset.test_transform)
 
-        train_data = instantiate(
+        images_train_rgb, images_val_rgb = split_dataset(self.rgb_data, self.config.dataset.train_ratio)
+
+        self.train_data_rgb = instantiate(
             self.config.dataset.train_dataset, 
+            images_data=images_train_rgb,
             transform=train_transfrom
         )
 
-        self.train_data_rgb, self.val_data_rgb = split_dataset(train_data)
-
-        self.val_data_same = instantiate(
-            self.config.dataset.val_dataset_same, 
+        self.val_data_rgb = instantiate(
+            self.config.dataset.val_dataset, 
+            images_data=images_val_rgb,
             transform=val_transfrom
         )
 
-        self.val_data_diff = instantiate(
-            self.config.dataset.val_dataset_diff, 
-            transform=val_transfrom
+        self.test_data_same = instantiate(
+            self.config.dataset.test_dataset, 
+            images_data=self.same_data,
+            transform=test_transfrom
+        )
+
+        self.test_data_diff = instantiate(
+            self.config.dataset.test_dataset, 
+            images_data=self.diff_data,
+            transform=test_transfrom
         )
 
     def train_dataloader(self) -> DataLoader:
         if self.config.dataset.train_dataloader._target_ is not None:
-            return instantiate(
-                self.config.dataset.train_dataloader, dataset=self.train_data_rgb)
+            return instantiate(self.config.dataset.train_dataloader, dataset=self.train_data_rgb)
 
     def val_dataloader(self) -> DataLoader:
-        val_loader_same = instantiate(self.config.dataset.val_dataloader, dataset=self.val_data_same)
-        val_loader_diff = instantiate(self.config.dataset.val_dataloader, dataset=self.val_data_diff)
-        val_loader_rgb = instantiate(self.config.dataset.val_dataloader, dataset=self.val_data_rgb)
+        return instantiate(self.config.dataset.val_dataloader, dataset=self.val_data_rgb)
+
+    def test_dataloader(self) -> DataLoader:
+        val_loader_same = instantiate(self.config.dataset.test_dataloader, dataset=self.test_data_same)
+        val_loader_diff = instantiate(self.config.dataset.test_dataloader, dataset=self.test_data_diff)
         loaders = {
-            "rgb": val_loader_rgb,
             "same_protocol": val_loader_same,
             "diff_protocol": val_loader_diff 
         }

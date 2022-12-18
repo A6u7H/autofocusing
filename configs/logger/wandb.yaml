@@ -1,5 +1,5 @@
 _target_: pytorch_lightning.loggers.WandbLogger
 
-save_dir: autofocusing/test
+save_dir: experiments/wandb
 project: autofocusing
 log_model: False
