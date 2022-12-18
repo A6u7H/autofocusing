@@ -46,7 +46,7 @@ class FocusingDataset(Dataset):
         if self.target_transform:
             defocus = self.target_transform(defocus)
 
-        return image, torch.tensor(defocus, dtype=torch.float32)
+        return image, torch.tensor(defocus/1000, dtype=torch.float32)
 
     def __len__(self):
         return len(self.images_data)
