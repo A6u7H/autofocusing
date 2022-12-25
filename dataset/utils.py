@@ -56,14 +56,15 @@ class ValFocusingTransform:
 class TestFocusingTransform:
     def __init__(self, 
                 mean: Tuple[float]=(0.485, 0.456, 0.406), 
-                std: Tuple[float]=(0.229, 0.224, 0.225)
+                std: Tuple[float]=(0.229, 0.224, 0.225),
+                crop_size: Tuple[int]=(2016, 2016)
         ) -> None: 
-
+        crop_height, crop_width = crop_size
         self.mean = mean
         self.std = std
 
         self.transform = A.Compose([
-            A.CenterCrop(2016, 2016),
+            A.CenterCrop(crop_height, crop_width),
             A.Normalize(mean=mean, std=std),
             ToTensorV2(),
         ])
