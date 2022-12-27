@@ -22,12 +22,12 @@ def main(config: DictConfig) -> None:
 
     output_dir = hydra_cfg['runtime']['output_dir']
     saving_weight_path = os.path.join(output_dir, "weight")
-    
+
     checkpoint_callback = ModelCheckpoint(dirpath=saving_weight_path, save_top_k=5, monitor="val/loss")
     early_stopping = EarlyStopping("val/loss")
     trainer = instantiate(config.trainer, logger=model_logger, callbacks=[checkpoint_callback, early_stopping])
     trainer.fit(model=model, datamodule=datamodule)
-    trainer.test(datamodule=datamodule)
+    trainer.test(model=model, datamodule=datamodule)
 
 
 if __name__ == "__main__":
