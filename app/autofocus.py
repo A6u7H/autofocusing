@@ -9,7 +9,6 @@ from PIL import Image
 
 from dataset.utils import TestFocusingTransform
 from models.mobilenet import MobileNetV3Large
-from hydra.utils import instantiate
 
 model_config_path = "/home/dkrivenkov/program/autofocusing/config/model/mobilenet.yaml"
 dataset_config_path = "/home/dkrivenkov/program/autofocusing/config/dataset/rgb_dataset.yaml"
@@ -24,12 +23,14 @@ def get_base64_of_bin_file(bin_file):
         data = f.read()
     return base64.b64encode(data).decode()
 
+
 def get_state_dict(checkpoint):
     correct_state_dict = {}
     for k, v in checkpoint["state_dict"].items():
         new_name = ".".join(k.split(".")[1:])
         correct_state_dict[new_name] = v
     return correct_state_dict
+
 
 class ModelConfig:
     def __init__(self, configuration):
@@ -38,6 +39,7 @@ class ModelConfig:
     def set_parameters(self, configuration):
         for k, v in configuration["config"].items():
             setattr(self, k, v)
+
 
 def img_to_patch(image, patch_size, flatten_channels=True):
     B, C, H, W = image.shape
