@@ -2,23 +2,20 @@ import torch
 import cv2
 import numpy as np
 import re
-import matplotlib.pyplot as plt
 
-from pathlib import Path
-from torch.utils.data import Dataset, DataLoader
-from typing import Optional, Any, Tuple
+from torch.utils.data import Dataset
+from typing import Optional, Any
 
 
 class FocusingDataset(Dataset):
-    def __init__(self, 
-                images_data: np.ndarray, 
-                pattern: str,
-                transform: Optional[Any]=None,
-                target_transform: Optional[Any]=None) -> None:
-
-        # self.data_path = Path(data_path)
+    def __init__(
+        self,
+        images_data: np.ndarray,
+        pattern: str,
+        transform: Optional[Any] = None,
+        target_transform: Optional[Any] = None
+    ) -> None:
         self.pattern = pattern
-        # self.images_data = self.get_image_paths()
         self.images_data = images_data
 
         self.transform = transform
@@ -38,11 +35,11 @@ class FocusingDataset(Dataset):
                 seg_num, defocus = int(match.group(1)), int(match.group(2))
             else:
                 defocus = int(match.group(1))
-        
-        image = cv2.imread(image_path)[:,:,::-1]
+
+        image = cv2.imread(image_path)[..., ::-1]
 
         if self.transform:
-            image = self.transform(image)["image"]
+            image = self.transform(image)
         if self.target_transform:
             defocus = self.target_transform(defocus)
 

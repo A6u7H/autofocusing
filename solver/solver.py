@@ -1,6 +1,5 @@
 import torch
 import pytorch_lightning as pl
-import torch.nn.functional as F
 
 from omegaconf import DictConfig
 from torch import Tensor
@@ -30,7 +29,7 @@ class Solver(pl.LightningModule):
            'lr_scheduler': scheduler,
            'monitor': 'same_protocol_val_loss'
         }
-    
+
     def loss_fn(self, pred: Tensor, target: Tensor) -> Tensor:
         return self.focus_loss(pred, target)
 
@@ -43,7 +42,7 @@ class Solver(pl.LightningModule):
         pred = pred.view(-1)
         mae_value = torch.abs(pred.view(-1) - target).mean()
         mape_value = torch.abs(pred - target) / max(torch.abs(pred))
-        return mae_value,mape_value
+        return mae_value, mape_value
 
     def training_step(self, batch: Tensor, batch_idx: int):
         image, target_focus = batch
@@ -73,12 +72,12 @@ class Solver(pl.LightningModule):
             "loss": loss,
             "metrics": metrics
         }
-    
+
     def img_to_patch(self, image, patch_size, flatten_channels=True):
         B, C, H, W = image.shape
         image = image.reshape(B, C, H//patch_size, patch_size, W//patch_size, patch_size)
         image = image.permute(0, 2, 4, 1, 3, 5)
-        return image.flatten(1,2)
+        return image.flatten(1, 2)
 
     def test_step(self, batch: Tensor, batch_idx: int):
         test_info = {}
@@ -86,14 +85,17 @@ class Solver(pl.LightningModule):
             image, target_focus = batch_key
             images = self.img_to_patch(image, 224)
             image_count = images.shape[1]
-            predictions = torch.cat([self.model(images[:, i]) for i in range(image_count)], axis=1)
+            predictions = torch.cat([
+                self.model(images[:, i])
+                for i in range(image_count)
+            ], axis=1)
 
             pred_focus = torch.median(predictions, dim=1, keepdim=True)[0]
             loss = self.loss_fn(pred_focus, target_focus)
             metrics = self.metric_fn(pred_focus, target_focus)
 
             test_info[key] = {"metrics": metrics, "loss": loss}
-            self.log(f"test/loss", loss)
+            self.log("test/loss", loss)
 
         return test_info
 
@@ -106,7 +108,7 @@ class Solver(pl.LightningModule):
         for output in outputs:
             test_metrics["same_protocol"].append(output["same_protocol"]["metrics"]["l1_loss"])
             test_metrics["diff_protocol"].append(output["diff_protocol"]["metrics"]["l1_loss"])
-        
+
         for key, metrics in test_metrics.items():
             self.log(f"test/{key}_l1_loss_mean", torch.mean(torch.tensor(metrics)))
             self.log(f"test/{key}_l1_loss_std", torch.std(torch.tensor(metrics)))
@@ -120,7 +122,11 @@ class Solver(pl.LightningModule):
         self.log_artifact(".hydra/config.yaml")
         self.log_artifact(".hydra/hydra.yaml")
         self.log_artifact(".hydra/overrides.yaml")
-        self.trainer.fit(self, train_dataloaders=self.train_dataloader, val_dataloaders=self.val_dataloader)
+        self.trainer.fit(
+            self,
+            train_dataloaders=self.train_dataloader,
+            val_dataloaders=self.val_dataloader
+        )
 
     def log_artifact(self, artifact_path: str):
         self.logger.experiment.log_artifact(self.logger.run_id, artifact_path)

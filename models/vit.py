@@ -3,8 +3,9 @@ import torch.nn as nn
 from torchvision.models import vit_b_32
 from typing import Dict, Any
 
+
 class VIT(nn.Module):
-    
+
     def __init__(self, config: Dict[str, Any]):
         super(VIT, self).__init__()
 

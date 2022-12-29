@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 from pytorch_lightning.trainer.supporters import CombinedLoader
 from hydra.utils import instantiate
 
-from .utils import split_dataset
+from dataset.transform import split_dataset
 
 
 class DataModule(pl.LightningDataModule):
@@ -25,49 +25,61 @@ class DataModule(pl.LightningDataModule):
         self.diff_data = [image_paph for image_paph in self.data_diff_path.glob(search_pattern) if image_paph.is_file()]
 
     def setup(self, stage: Optional[str] = None) -> None:
-        train_transfrom=instantiate(self.config.dataset.train_transform)
-        val_transfrom=instantiate(self.config.dataset.val_transform)
+        train_transfrom = instantiate(self.config.dataset.train_transform)
+        val_transfrom = instantiate(self.config.dataset.val_transform)
         test_transfrom = instantiate(self.config.dataset.test_transform)
 
         images_train_rgb, images_val_rgb = split_dataset(self.rgb_data, self.config.dataset.train_ratio)
 
         self.train_data_rgb = instantiate(
-            self.config.dataset.train_dataset, 
+            self.config.dataset.train_dataset,
             images_data=images_train_rgb,
             transform=train_transfrom
         )
 
         self.val_data_rgb = instantiate(
-            self.config.dataset.val_dataset, 
+            self.config.dataset.val_dataset,
             images_data=images_val_rgb,
             transform=val_transfrom
         )
 
         self.test_data_same = instantiate(
-            self.config.dataset.test_dataset, 
+            self.config.dataset.test_dataset,
             images_data=self.same_data,
             transform=test_transfrom
         )
 
         self.test_data_diff = instantiate(
-            self.config.dataset.test_dataset, 
+            self.config.dataset.test_dataset,
             images_data=self.diff_data,
             transform=test_transfrom
         )
 
     def train_dataloader(self) -> DataLoader:
         if self.config.dataset.train_dataloader._target_ is not None:
-            return instantiate(self.config.dataset.train_dataloader, dataset=self.train_data_rgb)
+            return instantiate(
+                self.config.dataset.train_dataloader,
+                dataset=self.train_data_rgb
+            )
 
     def val_dataloader(self) -> DataLoader:
-        return instantiate(self.config.dataset.val_dataloader, dataset=self.val_data_rgb)
+        return instantiate(
+            self.config.dataset.val_dataloader,
+            dataset=self.val_data_rgb
+        )
 
     def test_dataloader(self) -> DataLoader:
-        val_loader_same = instantiate(self.config.dataset.test_dataloader, dataset=self.test_data_same)
-        val_loader_diff = instantiate(self.config.dataset.test_dataloader, dataset=self.test_data_diff)
+        val_loader_same = instantiate(
+            self.config.dataset.test_dataloader,
+            dataset=self.test_data_same
+        )
+        val_loader_diff = instantiate(
+            self.config.dataset.test_dataloader,
+            dataset=self.test_data_diff
+        )
         loaders = {
             "same_protocol": val_loader_same,
-            "diff_protocol": val_loader_diff 
+            "diff_protocol": val_loader_diff
         }
 
         return CombinedLoader(loaders, mode="max_size_cycle")

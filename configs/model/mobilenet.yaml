@@ -1,6 +1,7 @@
 _target_: models.mobilenet.MobileNetV3Large
 config:
   pretrained: true
+  change_first_layer: false
   weights: MobileNet_V3_Large_Weights.DEFAULT
   freeze: false
   input_dim: 1280

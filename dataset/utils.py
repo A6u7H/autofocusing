@@ -1,74 +1,26 @@
-import albumentations as A
 import numpy as np
+import torch
 import cv2
 
-from typing import Tuple
-from torch.utils.data import Dataset
-from albumentations.pytorch import ToTensorV2
+from torch import Tensor
 
 
-def split_dataset(data, train_ratio: float=0.8):
+def split_dataset(data, train_ratio: float = 0.8):
     train_size = int(len(data) * train_ratio)
     data = np.random.permutation(data)
     return data[:train_size], data[train_size:]
 
-class TrainFocusingTransform:
-    def __init__(self, 
-                mean: Tuple[float]=(0.485, 0.456, 0.406), 
-                std: Tuple[float]=(0.229, 0.224, 0.225)
-        ) -> None: 
 
-        self.mean = mean
-        self.std = std
+def get_fourier_channel(image: Tensor):
+    img_numpy = image.numpy().transpose(1, 2, 0)
+    img_gray = cv2.cvtColor(img_numpy, cv2.COLOR_RGB2GRAY)
+    dft = cv2.dft(np.float32(img_gray), flags=cv2.DFT_COMPLEX_OUTPUT)
 
-        self.transform = A.Compose([
-            A.Resize(224, 224),
-            A.Rotate(90, p=0.5),
-            A.Normalize(mean=mean, std=std),
-            ToTensorV2(),
-        ])
-
-    def __call__(self, img):
-        img = cv2.medianBlur(img, 3)
-        return self.transform(image=img)
-
-
-class ValFocusingTransform:
-    def __init__(self, 
-                mean: Tuple[float]=(0.485, 0.456, 0.406), 
-                std: Tuple[float]=(0.229, 0.224, 0.225)
-        ) -> None: 
-
-        self.mean = mean
-        self.std = std
-
-        self.transform = A.Compose([
-            A.Resize(224, 224),
-            A.Normalize(mean=mean, std=std),
-            ToTensorV2(),
-        ])
-
-    def __call__(self, img):
-        img = cv2.medianBlur(img, 3)
-        return self.transform(image=img)
-
-
-class TestFocusingTransform:
-    def __init__(self, 
-                mean: Tuple[float]=(0.485, 0.456, 0.406), 
-                std: Tuple[float]=(0.229, 0.224, 0.225),
-                crop_size: Tuple[int]=(2016, 2016)
-        ) -> None: 
-        crop_height, crop_width = crop_size
-        self.mean = mean
-        self.std = std
-
-        self.transform = A.Compose([
-            A.CenterCrop(crop_height, crop_width),
-            A.Normalize(mean=mean, std=std),
-            ToTensorV2(),
-        ])
-
-    def __call__(self, img):
-        img = cv2.medianBlur(img, 3)
-        return self.transform(image=img)
+    dft_shift = np.fft.fftshift(dft)
+    eps = 1e-9
+    magnitude_spectrum = 20 * np.log(cv2.magnitude(
+        dft_shift[..., 0],
+        dft_shift[..., 1]) + eps
+    )
+    magnitude_spectrum_tensor = torch.tensor(magnitude_spectrum)
+    return magnitude_spectrum_tensor

@@ -7,15 +7,16 @@ import base64
 
 from PIL import Image
 
-from dataset.utils import TestFocusingTransform
+from dataset.transform import TestFocusingTransform, TrainFocusingTransform
 from models.mobilenet import MobileNetV3Large
 
 model_config_path = "/home/dkrivenkov/program/autofocusing/config/model/mobilenet.yaml"
 dataset_config_path = "/home/dkrivenkov/program/autofocusing/config/dataset/rgb_dataset.yaml"
 
-runs_path = "/home/dkrivenkov/program/autofocusing/experiments/mobilenetv3/runs/2022-12-18_19-45-27"
+runs_path = "/home/dkrivenkov/program/autofocusing/experiments/mobilenet/runs/2022-12-28_14-22-35"
 config_path = os.path.join(runs_path, ".hydra", "config.yaml")
-weight_path = os.path.join(runs_path, "weight", "epoch=17-step=14472.ckpt")
+weight_path = os.path.join(runs_path, "weight", "epoch=19-step=16080.ckpt")
+
 
 @st.cache(allow_output_mutation=True)
 def get_base64_of_bin_file(bin_file):
@@ -45,11 +46,13 @@ def img_to_patch(image, patch_size, flatten_channels=True):
     B, C, H, W = image.shape
     image = image.reshape(B, C, H//patch_size, patch_size, W//patch_size, patch_size)
     image = image.permute(0, 2, 4, 1, 3, 5)
-    return image.flatten(1,2)
+    return image.flatten(1, 2)
+
 
 def predict(model, image):
-    return model(image)
-    
+    with torch.no_grad():
+        return model(image)
+
 
 with open(config_path, "r") as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
@@ -63,11 +66,15 @@ checkpoint = torch.load(weight_path, map_location="cpu")
 state_dict = get_state_dict(checkpoint)
 
 if __name__ == "__main__":
-    upload= st.file_uploader('Insert image for classification', type=['png','jpg'])
+    upload = st.file_uploader(
+        "Insert image for classification",
+        type=['png', 'jpg']
+    )
     model = MobileNetV3Large(config_class)
     model.load_state_dict(state_dict)
+    model.eval()
 
-    c1, c2= st.columns(2)
+    c1, c2 = st.columns(2)
     if upload is not None:
         image = Image.open(upload)
         image = np.asarray(image)
@@ -76,13 +83,23 @@ if __name__ == "__main__":
 
         predictions = []
         if image.shape[1] == 224:
-            transform = TestFocusingTransform(transform_mean, transform_std, (224, 224))
-            image_tensor = transform(image)["image"]
+            transform = TestFocusingTransform(
+                transform_mean,
+                transform_std,
+                False,
+                (224, 224)
+            )
+            image_tensor = transform(image)
             image_tensor = image_tensor.unsqueeze(0)
             predictions.append(predict(model, image_tensor))
         else:
-            transform = TestFocusingTransform(transform_mean, transform_std, transform_crop_size)
-            image_tensor = transform(image)["image"]
+            transform = TestFocusingTransform(
+                transform_mean,
+                transform_std,
+                False,
+                transform_crop_size
+            )
+            image_tensor = transform(image)
             images = img_to_patch(image_tensor.unsqueeze(0), 224)
             image_count = images.shape[1]
             for i in range(image_count):
@@ -90,5 +107,5 @@ if __name__ == "__main__":
 
         predictions = torch.cat(predictions, dim=1)
         pred_focus = torch.median(predictions, dim=1, keepdim=True)[0]
-        c2.header(f"Prediction")
+        c2.header("Prediction")
         c2.write(pred_focus.item())

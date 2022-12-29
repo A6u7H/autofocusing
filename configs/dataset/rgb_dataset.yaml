@@ -45,6 +45,7 @@ train_transform:
     - 0.229
     - 0.224
     - 0.225
+  add_fourier: false
 
 val_transform:
   _target_: dataset.utils.ValFocusingTransform
@@ -56,6 +57,7 @@ val_transform:
     - 0.229
     - 0.224
     - 0.225
+  add_fourier: false
 
 test_transform:
   _target_: dataset.utils.TestFocusingTransform
@@ -67,6 +69,7 @@ test_transform:
     - 0.229
     - 0.224
     - 0.225
+  add_fourier: false
   crop_size:
     - 2016
     - 2016

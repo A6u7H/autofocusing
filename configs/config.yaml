@@ -7,5 +7,4 @@ defaults:
 - optimizer: mobilenet
 - hydra: default
 
-
-task_name: vit
+task_name: mobilenet
