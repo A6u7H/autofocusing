@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 from pytorch_lightning.trainer.supporters import CombinedLoader
 from hydra.utils import instantiate
 
-from dataset.transform import split_dataset
+from dataset.utils import split_dataset
 
 
 class DataModule(pl.LightningDataModule):
@@ -20,9 +20,21 @@ class DataModule(pl.LightningDataModule):
         self.data_same_path = Path(self.config.dataset.same_data_path)
         self.data_diff_path = Path(self.config.dataset.diff_data_path)
 
-        self.rgb_data = [image_paph for image_paph in self.data_rgb_path.glob(search_pattern) if image_paph.is_file()]
-        self.same_data = [image_paph for image_paph in self.data_same_path.glob(search_pattern) if image_paph.is_file()]
-        self.diff_data = [image_paph for image_paph in self.data_diff_path.glob(search_pattern) if image_paph.is_file()]
+        self.rgb_data = [
+            image_paph
+            for image_paph in self.data_rgb_path.glob(search_pattern)
+            if image_paph.is_file()
+        ]
+        self.same_data = [
+            image_paph
+            for image_paph in self.data_same_path.glob(search_pattern)
+            if image_paph.is_file()
+        ]
+        self.diff_data = [
+            image_paph
+            for image_paph in self.data_diff_path.glob(search_pattern)
+            if image_paph.is_file()
+        ]
 
     def setup(self, stage: Optional[str] = None) -> None:
         train_transfrom = instantiate(self.config.dataset.train_transform)

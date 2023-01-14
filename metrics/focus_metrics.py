@@ -11,17 +11,15 @@ class FocusMetrics(nn.Module):
         )
         self.l1_loss = nn.L1Loss()
 
-
     def forward(self, prediction, target):
         device = prediction.device
-
+        self.grid = self.grid.to(device)
         l1_value = self.l1_loss(prediction.view(-1), target)
         repeated = prediction.repeat(1, len(self.grid))
-        diff = abs(repeated - self.grid.to(device))
-        class_pred = self.grid[diff.min(axis=1)[1]].to(device)
+        diff = abs(repeated - self.grid)
+        class_pred = self.grid[diff.min(axis=1)[1]]
         return {
             "l1_loss": l1_value.item(),
             "correct_pred": (class_pred == target).sum().item(),
             "total": len(target)
         }
-

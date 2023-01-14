@@ -73,29 +73,24 @@ class Solver(pl.LightningModule):
             "metrics": metrics
         }
 
-    def img_to_patch(self, image, patch_size, flatten_channels=True):
-        B, C, H, W = image.shape
-        image = image.reshape(B, C, H//patch_size, patch_size, W//patch_size, patch_size)
-        image = image.permute(0, 2, 4, 1, 3, 5)
-        return image.flatten(1, 2)
-
     def test_step(self, batch: Tensor, batch_idx: int):
+        self.model.eval()
         test_info = {}
-        for key, batch_key in batch.items():
-            image, target_focus = batch_key
-            images = self.img_to_patch(image, 224)
-            image_count = images.shape[1]
-            predictions = torch.cat([
-                self.model(images[:, i])
-                for i in range(image_count)
-            ], axis=1)
+        with torch.no_grad():
+            for key, batch_key in batch.items():
+                images, target_focus = batch_key
+                image_count = images.shape[1]
+                predictions = torch.cat([
+                    self.model(images[:, i])
+                    for i in range(image_count)
+                ], axis=1)
 
-            pred_focus = torch.median(predictions, dim=1, keepdim=True)[0]
-            loss = self.loss_fn(pred_focus, target_focus)
-            metrics = self.metric_fn(pred_focus, target_focus)
+                pred_focus = torch.median(predictions, dim=1, keepdim=True)[0]
+                loss = self.loss_fn(pred_focus, target_focus)
+                metrics = self.metric_fn(pred_focus, target_focus)
 
-            test_info[key] = {"metrics": metrics, "loss": loss}
-            self.log("test/loss", loss)
+                test_info[key] = {"metrics": metrics, "loss": loss}
+                self.log("test/loss", loss)
 
         return test_info
 
