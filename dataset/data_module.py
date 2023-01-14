@@ -1,4 +1,5 @@
 import pytorch_lightning as pl
+import os
 
 from pathlib import Path
 from typing import Optional
@@ -16,15 +17,21 @@ class DataModule(pl.LightningDataModule):
 
     def prepare_data(self):
         search_pattern = "**/*.jpg"
-        self.data_rgb_path = Path(self.config.dataset.rgb_data_path)
         self.data_same_path = Path(self.config.dataset.same_data_path)
         self.data_diff_path = Path(self.config.dataset.diff_data_path)
 
-        self.rgb_data = [
-            image_paph
-            for image_paph in self.data_rgb_path.glob(search_pattern)
-            if image_paph.is_file()
-        ]
+        self.rgb_data = {}
+        for segment_name in os.listdir(self.config.dataset.rgb_data_path):
+            segment_path = os.path.join(
+                self.config.dataset.rgb_data_path,
+                segment_name
+            )
+            images = []
+            for image_name in os.listdir(segment_path):
+                image_path = os.path.join(segment_path, image_name)
+                images.append(image_path)
+            self.rgb_data[segment_name] = images
+
         self.same_data = [
             image_paph
             for image_paph in self.data_same_path.glob(search_pattern)
@@ -41,7 +48,10 @@ class DataModule(pl.LightningDataModule):
         val_transfrom = instantiate(self.config.dataset.val_transform)
         test_transfrom = instantiate(self.config.dataset.test_transform)
 
-        images_train_rgb, images_val_rgb = split_dataset(self.rgb_data, self.config.dataset.train_ratio)
+        images_train_rgb, images_val_rgb = split_dataset(
+            self.rgb_data,
+            self.config.dataset.train_ratio
+        )
 
         self.train_data_rgb = instantiate(
             self.config.dataset.train_dataset,

@@ -31,7 +31,6 @@ class TrainFocusingTransform:
 
         self.transform = A.Compose([
             A.Resize(224, 224),
-            # A.Rotate(90, p=0.5),
             A.Normalize(mean=mean, std=std),
             ToTensorV2(),
         ])

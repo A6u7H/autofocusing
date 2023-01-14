@@ -7,8 +7,14 @@ from torch import Tensor
 
 def split_dataset(data, train_ratio: float = 0.8):
     train_size = int(len(data) * train_ratio)
-    data = np.random.permutation(data)
-    return data[:train_size], data[train_size:]
+    train_data = []
+    val_data = []
+    for i, (_, images) in enumerate(data.items()):
+        if i <= train_size:
+            train_data.extend(images)
+        else:
+            val_data.extend(images)
+    return train_data, val_data
 
 
 def get_fourier_channel(image: Tensor):
