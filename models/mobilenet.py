@@ -30,7 +30,10 @@ class MobileNetV3Large(nn.Module):
                 padding=(1, 1),
                 bias=False
             )
-        self.model.classifier[-1] = nn.Linear(config.input_dim, config.output_dim)
+        self.model.classifier[-1] = nn.Linear(
+            config.input_dim,
+            config.output_dim
+        )
 
     def forward(self, x):
         return self.model(x)

@@ -13,9 +13,9 @@ from models.mobilenet import MobileNetV3Large
 model_config_path = "/home/dkrivenkov/program/autofocusing/config/model/mobilenet.yaml"
 dataset_config_path = "/home/dkrivenkov/program/autofocusing/config/dataset/rgb_dataset.yaml"
 
-runs_path = "/home/dkrivenkov/program/autofocusing/experiments/mobilenet/runs/2022-12-28_14-22-35"
+runs_path = "/home/dkrivenkov/program/autofocusing/experiments/mobilenet/runs/2023-01-15_18-47-11"
 config_path = os.path.join(runs_path, ".hydra", "config.yaml")
-weight_path = os.path.join(runs_path, "weight", "epoch=19-step=16080.ckpt")
+weight_path = os.path.join(runs_path, "weight", "epoch=40-step=32964.ckpt")
 
 
 @st.cache(allow_output_mutation=True)
@@ -40,13 +40,6 @@ class ModelConfig:
     def set_parameters(self, configuration):
         for k, v in configuration["config"].items():
             setattr(self, k, v)
-
-
-def img_to_patch(image, patch_size, flatten_channels=True):
-    B, C, H, W = image.shape
-    image = image.reshape(B, C, H//patch_size, patch_size, W//patch_size, patch_size)
-    image = image.permute(0, 2, 4, 1, 3, 5)
-    return image.flatten(1, 2)
 
 
 def predict(model, image):
@@ -82,28 +75,18 @@ if __name__ == "__main__":
         c1.image(image)
 
         predictions = []
-        if image.shape[1] == 224:
-            transform = TestFocusingTransform(
-                transform_mean,
-                transform_std,
-                False,
-                (224, 224)
+        transform = TestFocusingTransform(
+            transform_mean,
+            transform_std,
+            False,
+            transform_crop_size
+        )
+        images = transform(image)
+        image_count = len(images)
+        for i in range(image_count):
+            predictions.append(
+                predict(model, images[i].unsqueeze(0))
             )
-            image_tensor = transform(image)
-            image_tensor = image_tensor.unsqueeze(0)
-            predictions.append(predict(model, image_tensor))
-        else:
-            transform = TestFocusingTransform(
-                transform_mean,
-                transform_std,
-                False,
-                transform_crop_size
-            )
-            image_tensor = transform(image)
-            images = img_to_patch(image_tensor.unsqueeze(0), 224)
-            image_count = images.shape[1]
-            for i in range(image_count):
-                predictions.append(predict(model, images[:, i]))
 
         predictions = torch.cat(predictions, dim=1)
         pred_focus = torch.median(predictions, dim=1, keepdim=True)[0]

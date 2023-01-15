@@ -74,23 +74,21 @@ class Solver(pl.LightningModule):
         }
 
     def test_step(self, batch: Tensor, batch_idx: int):
-        self.model.eval()
         test_info = {}
-        with torch.no_grad():
-            for key, batch_key in batch.items():
-                images, target_focus = batch_key
-                image_count = images.shape[1]
-                predictions = torch.cat([
-                    self.model(images[:, i])
-                    for i in range(image_count)
-                ], axis=1)
+        for key, batch_key in batch.items():
+            images, target_focus = batch_key
+            image_count = images.shape[1]
+            predictions = torch.cat([
+                self.model(images[:, i])
+                for i in range(image_count)
+            ], axis=1)
 
-                pred_focus = torch.median(predictions, dim=1, keepdim=True)[0]
-                loss = self.loss_fn(pred_focus, target_focus)
-                metrics = self.metric_fn(pred_focus, target_focus)
+            pred_focus = torch.median(predictions, dim=1, keepdim=True)[0]
+            loss = self.loss_fn(pred_focus, target_focus)
+            metrics = self.metric_fn(pred_focus, target_focus)
 
-                test_info[key] = {"metrics": metrics, "loss": loss}
-                self.log("test/loss", loss)
+            test_info[key] = {"metrics": metrics, "loss": loss}
+            self.log("test/loss", loss)
 
         return test_info
 
@@ -101,12 +99,22 @@ class Solver(pl.LightningModule):
         }
 
         for output in outputs:
-            test_metrics["same_protocol"].append(output["same_protocol"]["metrics"]["l1_loss"])
-            test_metrics["diff_protocol"].append(output["diff_protocol"]["metrics"]["l1_loss"])
+            test_metrics["same_protocol"].append(
+                output["same_protocol"]["metrics"]["l1_loss"]
+            )
+            test_metrics["diff_protocol"].append(
+                output["diff_protocol"]["metrics"]["l1_loss"]
+            )
 
         for key, metrics in test_metrics.items():
-            self.log(f"test/{key}_l1_loss_mean", torch.mean(torch.tensor(metrics)))
-            self.log(f"test/{key}_l1_loss_std", torch.std(torch.tensor(metrics)))
+            self.log(
+                f"test/{key}_l1_loss_mean",
+                torch.mean(torch.tensor(metrics))
+            )
+            self.log(
+                f"test/{key}_l1_loss_std",
+                torch.std(torch.tensor(metrics))
+            )
 
     def validation_epoch_end(self, outputs) -> None:
         l1_losses = torch.tensor([output['metrics']["l1_loss"] for output in outputs])

@@ -9,13 +9,11 @@ from dataset.utils import get_fourier_channel
 
 
 def img_to_patch(image, patch_size, flatten_channels=True):
-        H, W, C = image.shape
-        image = image.reshape(
-            C,
-            H//patch_size, patch_size, W//patch_size, patch_size
-        )
-        image = image.transpose(1, 3, 0, 2, 4)
-        return image.reshape(-1, C, patch_size, patch_size)
+    images = []
+    for i in range(0, image.shape[0] - patch_size + 1, patch_size):
+        for j in range(0, image.shape[1] - patch_size + 1, patch_size):
+            images.append(image[i:i+patch_size, j:j+patch_size, :])
+    return images
 
 
 class TrainFocusingTransform:
@@ -93,22 +91,16 @@ class TestFocusingTransform:
         crop_height, crop_width = crop_size
         self.add_fourier = add_fourier
 
-        self.pre_transform = A.Compose([
-            A.CenterCrop(crop_height, crop_width),
-        ])
-
         self.post_transform = A.Compose([
             A.Normalize(mean=mean, std=std),
             ToTensorV2(),
         ])
 
     def __call__(self, img):
-        img = self.pre_transform(image=img)["image"]
         images = img_to_patch(img, 224)
-
         new_images = []
         for i in range(len(images)):
-            img = cv2.medianBlur(images[i], 3).transpose(1, 2, 0)
+            img = cv2.medianBlur(images[i], 3)
             img = self.post_transform(image=img)["image"]
             new_images.append(img)
         if self.add_fourier:

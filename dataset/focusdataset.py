@@ -35,7 +35,6 @@ class FocusingDataset(Dataset):
                 seg_num, defocus = int(match.group(1)), int(match.group(2))
             else:
                 defocus = int(match.group(1))
-
         image = cv2.imread(image_path)[..., ::-1]
 
         if self.transform:

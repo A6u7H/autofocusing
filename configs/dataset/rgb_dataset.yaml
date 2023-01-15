@@ -38,37 +38,37 @@ test_dataloader:
 train_transform:
   _target_: dataset.transform.TrainFocusingTransform
   mean: 
-    - 140.87
-    - 117.73
-    - 131.95
+    - 0.485
+    - 0.456
+    - 0.406
   std:
-    - 17.15
-    - 20.52
-    - 20.51
+    - 0.229
+    - 0.224
+    - 0.225
   add_fourier: false
 
 val_transform:
   _target_: dataset.transform.ValFocusingTransform
   mean: 
-    - 140.87
-    - 117.73
-    - 131.95
+    - 0.485
+    - 0.456
+    - 0.406
   std:
-    - 17.15
-    - 20.52
-    - 20.51
+    - 0.229
+    - 0.224
+    - 0.225
   add_fourier: false
 
 test_transform:
   _target_: dataset.transform.TestFocusingTransform
   mean: 
-    - 140.87
-    - 117.73
-    - 131.95
+    - 0.485
+    - 0.456
+    - 0.406
   std:
-    - 17.15
-    - 20.52
-    - 20.51
+    - 0.229
+    - 0.224
+    - 0.225
   add_fourier: false
   crop_size:
     - 2016
