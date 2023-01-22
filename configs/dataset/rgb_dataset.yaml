@@ -1,7 +1,14 @@
-rgb_data_path: /home/dkrivenkov/program/autofocusing/data/data_channel/incoherent_RGBchannels/train_incoherent_RGBChannels
+# data_path: /home/dkrivenkov/program/autofocusing/data/data_domain_1/dualLED_3domains/train_dualLED_3domains
+# same_data_path: /home/dkrivenkov/program/autofocusing/data/data_domain_1/dualLED_3domains/testRawData_dualLED_sameProtocol
+# diff_data_path: /home/dkrivenkov/program/autofocusing/data/data_domain_1/dualLED_3domains/testRawData_dualLED_diffProtocol
+
+
+data_path: /home/dkrivenkov/program/autofocusing/data/data_channel/incoherent_RGBchannels/train_incoherent_RGBChannels
 same_data_path: /home/dkrivenkov/program/autofocusing/data/data_channel/incoherent_RGBchannels/testRawData_incoherent_sameProtocol
 diff_data_path: /home/dkrivenkov/program/autofocusing/data/data_channel/incoherent_RGBchannels/testRawData_incoherent_diffProtocol
+
 train_ratio: 0.8
+smart_split: false
 
 train_dataset: 
   _target_: dataset.focusdataset.FocusingDataset
@@ -20,18 +27,18 @@ test_dataset:
 
 train_dataloader:
   _target_: torch.utils.data.DataLoader
-  batch_size: 128
+  batch_size: 8
   drop_last: true
   num_workers: 10
 
 val_dataloader:
   _target_: torch.utils.data.DataLoader
-  batch_size: 128
+  batch_size: 8
   num_workers: 10
 
 test_dataloader:
   _target_: torch.utils.data.DataLoader
-  batch_size: 4
+  batch_size: 8
   num_workers: 10
 
 
@@ -71,5 +78,5 @@ test_transform:
     - 0.225
   add_fourier: false
   crop_size:
-    - 2016
-    - 2240
+    - 1120
+    - 1120

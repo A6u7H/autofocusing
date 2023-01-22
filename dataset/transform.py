@@ -8,7 +8,7 @@ from albumentations.pytorch import ToTensorV2
 from dataset.utils import get_fourier_channel
 
 
-def img_to_patch(image, patch_size, flatten_channels=True):
+def img_to_patch(image, patch_size):
     images = []
     for i in range(0, image.shape[0] - patch_size + 1, patch_size):
         for j in range(0, image.shape[1] - patch_size + 1, patch_size):
@@ -91,12 +91,17 @@ class TestFocusingTransform:
         crop_height, crop_width = crop_size
         self.add_fourier = add_fourier
 
+        self.prep_transform = A.Compose([
+            A.CenterCrop(crop_height, crop_width),
+        ])
+
         self.post_transform = A.Compose([
             A.Normalize(mean=mean, std=std),
             ToTensorV2(),
         ])
 
     def __call__(self, img):
+        # img = self.prep_transform(image=img)["image"]
         images = img_to_patch(img, 224)
         new_images = []
         for i in range(len(images)):

@@ -5,15 +5,26 @@ import cv2
 from torch import Tensor
 
 
-def split_dataset(data, train_ratio: float = 0.8):
-    train_size = int(len(data) * train_ratio)
-    train_data = []
-    val_data = []
-    for i, (_, images) in enumerate(data.items()):
-        if i <= train_size:
-            train_data.extend(images)
-        else:
-            val_data.extend(images)
+def split_dataset(data, train_ratio: float = 0.8, smart_split: bool = True):
+    if smart_split:
+        train_size = int(len(data) * train_ratio)
+        train_data = []
+        val_data = []
+        for i, (_, images) in enumerate(data.items()):
+            if i <= train_size:
+                train_data.extend(images)
+            else:
+                val_data.extend(images)
+    else:
+        all_data = []
+        for v in data.values():
+            all_data.extend(v)
+        all_data = np.array(all_data)
+        train_size = int(len(all_data) * train_ratio)
+
+        indices = np.random.permutation(len(all_data))
+        train_idx, val_idx = indices[:train_size], indices[train_size:]
+        train_data, val_data = all_data[train_idx], all_data[val_idx]
     return train_data, val_data
 
 

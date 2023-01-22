@@ -21,9 +21,9 @@ class DataModule(pl.LightningDataModule):
         self.data_diff_path = Path(self.config.dataset.diff_data_path)
 
         self.rgb_data = {}
-        for segment_name in os.listdir(self.config.dataset.rgb_data_path):
+        for segment_name in os.listdir(self.config.dataset.data_path):
             segment_path = os.path.join(
-                self.config.dataset.rgb_data_path,
+                self.config.dataset.data_path,
                 segment_name
             )
             images = []
@@ -50,7 +50,8 @@ class DataModule(pl.LightningDataModule):
 
         images_train_rgb, images_val_rgb = split_dataset(
             self.rgb_data,
-            self.config.dataset.train_ratio
+            self.config.dataset.train_ratio,
+            self.config.dataset.smart_split
         )
 
         self.train_data_rgb = instantiate(

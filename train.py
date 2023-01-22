@@ -25,8 +25,13 @@ def main(config: DictConfig) -> None:
 
     checkpoint_callback = ModelCheckpoint(dirpath=saving_weight_path, save_top_k=5, monitor="val/loss")
     early_stopping = EarlyStopping("val/loss")
-    trainer = instantiate(config.trainer, logger=model_logger, callbacks=[checkpoint_callback, early_stopping])
+    trainer = instantiate(
+        config.trainer,
+        logger=model_logger,
+        callbacks=[checkpoint_callback, early_stopping]
+    )
     trainer.fit(model=model, datamodule=datamodule)
+    path_ckph = ""
     trainer.test(model=model, datamodule=datamodule)
 
 

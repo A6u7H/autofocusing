@@ -22,12 +22,19 @@ class Solver(pl.LightningModule):
 
     def configure_optimizers(self):
         params = self.model.parameters()
-        optimizer = instantiate(self.config.optimizer.optimizer, params=params)
-        scheduler = instantiate(self.config.optimizer.scheduler, optimizer=optimizer)
+        optimizer = instantiate(
+            self.config.optimizer.optimizer,
+            params=params
+        )
+        scheduler = instantiate(
+            self.config.optimizer.scheduler,
+            optimizer=optimizer
+        )
+
         return {
            'optimizer': optimizer,
            'lr_scheduler': scheduler,
-           'monitor': 'same_protocol_val_loss'
+           'monitor': 'val/loss'
         }
 
     def loss_fn(self, pred: Tensor, target: Tensor) -> Tensor:
@@ -57,7 +64,9 @@ class Solver(pl.LightningModule):
         }
 
     def training_epoch_end(self, outputs) -> None:
-        l1_losses = torch.tensor([output['metrics']["l1_loss"] for output in outputs])
+        l1_losses = torch.tensor([
+            output['metrics']["l1_loss"] for output in outputs
+        ])
         self.log("train/l1_loss_mean", torch.mean(l1_losses))
         self.log("train/l1_loss_std", torch.std(l1_losses))
 
@@ -66,7 +75,7 @@ class Solver(pl.LightningModule):
         pred_focus = self.model(image)
         loss = self.loss_fn(pred_focus, target_focus)
         metrics = self.metric_fn(pred_focus, target_focus)
-        self.log(f"val/loss", loss)
+        self.log("val/loss", loss)
 
         return {
             "loss": loss,
@@ -83,7 +92,7 @@ class Solver(pl.LightningModule):
                 for i in range(image_count)
             ], axis=1)
 
-            pred_focus = torch.median(predictions, dim=1, keepdim=True)[0]
+            pred_focus = torch.median(predictions[:, 35:45], dim=1, keepdim=True)[0]
             loss = self.loss_fn(pred_focus, target_focus)
             metrics = self.metric_fn(pred_focus, target_focus)
 
