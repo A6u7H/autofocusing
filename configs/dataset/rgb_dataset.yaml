@@ -28,7 +28,7 @@ test_dataset:
 train_dataloader:
   _target_: torch.utils.data.DataLoader
   batch_size: 8
-  drop_last: true
+  drop_last: false
   num_workers: 10
 
 val_dataloader:
@@ -38,7 +38,7 @@ val_dataloader:
 
 test_dataloader:
   _target_: torch.utils.data.DataLoader
-  batch_size: 8
+  batch_size: 1
   num_workers: 10
 
 
@@ -77,6 +77,11 @@ test_transform:
     - 0.224
     - 0.225
   add_fourier: false
-  crop_size:
-    - 1120
-    - 1120
+  resize_size:
+    - 1224
+    - 1024
+
+target_transform:
+  _target_: dataset.transform.TragetTransform
+  task_type: reg
+  num_segment: 10

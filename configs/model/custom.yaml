@@ -1,0 +1,9 @@
+_target_: models.customnet.ResNet
+config:
+  input_ch: 3
+  output_dim: 1
+  num_blocks:
+  - 4
+  - 4
+  - 6
+  - 3
