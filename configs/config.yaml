@@ -2,7 +2,7 @@ defaults:
 - _self_
 - dataset: rgb_dataset
 - logger: wandb
-- model: mobilenet
+- model: custom
 - trainer: mobilenet
 - optimizer: mobilenet
 - hydra: default

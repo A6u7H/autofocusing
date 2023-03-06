@@ -23,7 +23,11 @@ class FocusingDataset(Dataset):
 
     def get_image_paths(self):
         search_pattern = "**/*.jpg"
-        return [image_paph for image_paph in self.data_path.glob(search_pattern) if image_paph.is_file()]
+        return [
+            image_paph
+            for image_paph in self.data_path.glob(search_pattern)
+            if image_paph.is_file()
+        ]
 
     def __getitem__(self, idx):
         image_path = str(self.images_data[idx])
@@ -42,7 +46,7 @@ class FocusingDataset(Dataset):
         if self.target_transform:
             defocus = self.target_transform(defocus)
 
-        return image, torch.tensor(defocus/1000, dtype=torch.float32)
+        return image, defocus
 
     def __len__(self):
         return len(self.images_data)

@@ -47,6 +47,7 @@ class DataModule(pl.LightningDataModule):
         train_transfrom = instantiate(self.config.dataset.train_transform)
         val_transfrom = instantiate(self.config.dataset.val_transform)
         test_transfrom = instantiate(self.config.dataset.test_transform)
+        target_transsform = instantiate(self.config.dataset.target_transform)
 
         images_train_rgb, images_val_rgb = split_dataset(
             self.rgb_data,
@@ -57,25 +58,29 @@ class DataModule(pl.LightningDataModule):
         self.train_data_rgb = instantiate(
             self.config.dataset.train_dataset,
             images_data=images_train_rgb,
-            transform=train_transfrom
+            transform=train_transfrom,
+            target_transform=target_transsform
         )
 
         self.val_data_rgb = instantiate(
             self.config.dataset.val_dataset,
             images_data=images_val_rgb,
-            transform=val_transfrom
+            transform=val_transfrom,
+            target_transform=target_transsform
         )
 
         self.test_data_same = instantiate(
             self.config.dataset.test_dataset,
             images_data=self.same_data,
-            transform=test_transfrom
+            transform=test_transfrom,
+            target_transform=target_transsform
         )
 
         self.test_data_diff = instantiate(
             self.config.dataset.test_dataset,
             images_data=self.diff_data,
-            transform=test_transfrom
+            transform=test_transfrom,
+            target_transform=target_transsform
         )
 
     def train_dataloader(self) -> DataLoader:

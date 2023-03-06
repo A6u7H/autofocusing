@@ -31,8 +31,12 @@ def main(config: DictConfig) -> None:
         callbacks=[checkpoint_callback, early_stopping]
     )
     trainer.fit(model=model, datamodule=datamodule)
-    path_ckph = ""
-    trainer.test(model=model, datamodule=datamodule)
+    # ckpt_path = ""
+    trainer.test(
+        model=model,
+        datamodule=datamodule,
+        # ckpt_path=ckpt_path
+    )
 
 
 if __name__ == "__main__":
