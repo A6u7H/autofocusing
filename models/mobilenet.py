@@ -35,5 +35,15 @@ class MobileNetV3Large(nn.Module):
             config.output_dim
         )
 
-    def forward(self, x):
-        return self.model(x)
+        self.besquet_model = nn.Sequential(
+            nn.Linear(36, 128),
+            nn.ReLU(),
+            nn.Linear(128, 256),
+            nn.ReLU(),
+            nn.Linear(256, 1),
+        )
+
+    def forward(self, x, features=None):
+        if features is not None:
+            return self.besquet_model(features)
+        # return self.model(x)
