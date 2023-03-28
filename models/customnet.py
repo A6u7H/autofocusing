@@ -1,9 +1,6 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
-from torchvision.models import mobilenet_v3_large
-from typing import Dict, Any
-
 
 class BasicBlock(nn.Module):
     expansion = 1

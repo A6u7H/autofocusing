@@ -28,9 +28,8 @@ def split_dataset(data, train_ratio: float = 0.8, smart_split: bool = True):
     return train_data, val_data
 
 
-def get_fourier_channel(image: Tensor):
-    img_numpy = image.numpy().transpose(1, 2, 0)
-    img_gray = cv2.cvtColor(img_numpy, cv2.COLOR_RGB2GRAY)
+def get_fourier_channel(image: np.ndarray):
+    img_gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     dft = cv2.dft(np.float32(img_gray), flags=cv2.DFT_COMPLEX_OUTPUT)
 
     dft_shift = np.fft.fftshift(dft)

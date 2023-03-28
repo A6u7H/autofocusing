@@ -52,7 +52,7 @@ train_transform:
     - 0.229
     - 0.224
     - 0.225
-  add_fourier: false
+  add_fourier: true
 
 val_transform:
   _target_: dataset.transform.ValFocusingTransform
@@ -64,7 +64,7 @@ val_transform:
     - 0.229
     - 0.224
     - 0.225
-  add_fourier: false
+  add_fourier: true
 
 test_transform:
   _target_: dataset.transform.TestFocusingTransform
@@ -76,12 +76,12 @@ test_transform:
     - 0.229
     - 0.224
     - 0.225
-  add_fourier: false
+  add_fourier: true
   resize_size:
     - 1224
     - 1024
 
 target_transform:
   _target_: dataset.transform.TragetTransform
-  task_type: reg
-  num_segment: 10
+  task_type: cls
+  num_segment: 25

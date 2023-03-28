@@ -33,14 +33,14 @@ class DataModule(pl.LightningDataModule):
             self.rgb_data[segment_name] = images
 
         self.same_data = [
-            image_paph
-            for image_paph in self.data_same_path.glob(search_pattern)
-            if image_paph.is_file()
+            image_path
+            for image_path in self.data_same_path.glob(search_pattern)
+            if image_path.is_file()
         ]
         self.diff_data = [
-            image_paph
-            for image_paph in self.data_diff_path.glob(search_pattern)
-            if image_paph.is_file()
+            image_path
+            for image_path in self.data_diff_path.glob(search_pattern)
+            if image_path.is_file()
         ]
 
     def setup(self, stage: Optional[str] = None) -> None:

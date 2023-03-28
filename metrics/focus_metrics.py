@@ -23,3 +23,18 @@ class FocusMetrics(nn.Module):
             "correct_pred": (class_pred == target).sum().item(),
             "total": len(target)
         }
+
+
+class FocusMetricsCls(nn.Module):
+    def __init__(self, config):
+        super(FocusMetricsCls, self).__init__()
+        self.config = config
+
+    def forward(self, prediction, target, mode="train"):
+        class_pred = prediction.argmax(-1)
+        if mode == "test":
+            class_pred = torch.median(class_pred, dim=0, keepdim=True)[0]
+        return {
+            "correct_pred": (class_pred == target).sum().item(),
+            "total": len(target)
+        }

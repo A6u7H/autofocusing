@@ -1,10 +1,10 @@
 defaults:
 - _self_
-- dataset: rgb_dataset
+- dataset: rgb_dataset_cls
 - logger: wandb
-- model: custom
+- model: custom_cls
 - trainer: mobilenet
-- optimizer: mobilenet
+- optimizer: mobilenet_cls
 - hydra: default
 
-task_name: mobilenet
+task_name: mobilenet_4ch_cls

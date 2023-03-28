@@ -7,7 +7,7 @@ import base64
 
 from PIL import Image
 
-from dataset.transform import TestFocusingTransform, TrainFocusingTransform
+from dataset.transform import TestFocusingTransform
 from models.mobilenet import MobileNetV3Large
 
 model_config_path = "/home/dkrivenkov/program/autofocusing/config/model/mobilenet.yaml"

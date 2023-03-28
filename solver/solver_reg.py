@@ -7,18 +7,14 @@ from hydra.utils import instantiate
 
 
 class Solver(pl.LightningModule):
-    def __init__(self, config: DictConfig) -> None:
-        super().__init__()
+    def __init__(self, model, config: DictConfig) -> None:
+        super(Solver, self).__init__()
+        self.model = model
         self.config = config
         self.focus_loss = instantiate(self.config.optimizer.loss)
-        self.model = self.create_model()
 
     def forward(self, x):
         return self.model(x)
-
-    def create_model(self):
-        model = instantiate(self.config.model)
-        return model
 
     def configure_optimizers(self):
         params = self.model.parameters()

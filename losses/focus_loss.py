@@ -13,7 +13,7 @@ class FocusLoss(nn.Module):
 
 class FocusLossCls(nn.Module):
     def __init__(self, config):
-        super(FocusLoss, self).__init__()
+        super(FocusLossCls, self).__init__()
         self.config = config
         self.loss_fn = nn.CrossEntropyLoss()
 
