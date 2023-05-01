@@ -52,7 +52,8 @@ class DataModule(pl.LightningDataModule):
         images_train_rgb, images_val_rgb = split_dataset(
             self.rgb_data,
             self.config.dataset.train_ratio,
-            self.config.dataset.smart_split
+            self.config.dataset.smart_split,
+            self.config.dataset.two_image_pipeline
         )
 
         self.train_data_rgb = instantiate(

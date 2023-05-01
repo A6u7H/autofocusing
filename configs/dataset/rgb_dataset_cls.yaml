@@ -3,12 +3,13 @@
 # diff_data_path: /home/dkrivenkov/program/autofocusing/data/data_domain_1/dualLED_3domains/testRawData_dualLED_diffProtocol
 
 
-data_path: /home/dkrivenkov/program/autofocusing/data/data_channel/incoherent_RGBchannels/train_incoherent_RGBChannels
-same_data_path: /home/dkrivenkov/program/autofocusing/data/data_channel/incoherent_RGBchannels/testRawData_incoherent_sameProtocol
-diff_data_path: /home/dkrivenkov/program/autofocusing/data/data_channel/incoherent_RGBchannels/testRawData_incoherent_diffProtocol
+data_path: /home/dkrivenkov/program/autofocusing/data/incoherent_RGBchannels/train_incoherent_RGBChannels
+same_data_path: /home/dkrivenkov/program/autofocusing/data/incoherent_RGBchannels/testRawData_incoherent_sameProtocol
+diff_data_path: /home/dkrivenkov/program/autofocusing/data/incoherent_RGBchannels/testRawData_incoherent_diffProtocol
 
 train_ratio: 0.8
 smart_split: false
+two_image_pipeline: false
 
 train_dataset: 
   _target_: dataset.focusdataset.FocusingDataset
@@ -84,4 +85,4 @@ test_transform:
 target_transform:
   _target_: dataset.transform.TragetTransform
   task_type: cls
-  num_segment: 25
+  num_segment: 10

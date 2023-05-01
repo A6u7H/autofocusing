@@ -4,12 +4,13 @@ import logging
 
 from omegaconf import DictConfig
 from hydra.utils import instantiate
+from dotenv import load_dotenv
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 
 from dataset.data_module import DataModule
-from solver.solver_cls import Solver
+from solver.solver_reg import Solver
 
-
+load_dotenv()
 logger = logging.getLogger(__name__)
 
 @hydra.main(config_path="configs/", config_name="config.yaml", version_base="1.2.0")
@@ -39,7 +40,7 @@ def main(config: DictConfig) -> None:
     #     model=solver,
     #     datamodule=datamodule
     # )
-    ckpt_path = "/home/dkrivenkov/program/autofocusing/experiments/mobilenet_4ch_cls/runs/2023-03-26_20-08-07/weight/epoch=6-step=90090.ckpt"
+    # ckpt_path = "/home/dkrivenkov/program/autofocusing/experiments/mobilenet_4ch_cls/runs/2023-03-26_20-08-07/weight/epoch=6-step=90090.ckpt"
     trainer.test(
         model=solver,
         datamodule=datamodule,

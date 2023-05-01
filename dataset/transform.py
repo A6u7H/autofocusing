@@ -50,7 +50,7 @@ class TrainFocusingTransform:
                 img_transform,
                 magnitude_spectrum_tensor.unsqueeze(0)
             ], dim=0), torch.tensor(besquet_features)
-        return img, torch.tensor(besquet_features)
+        return img_transform, torch.tensor(besquet_features)
 
 
 class ValFocusingTransform:
@@ -82,7 +82,7 @@ class ValFocusingTransform:
                 img_transform,
                 magnitude_spectrum_tensor.unsqueeze(0)
             ], dim=0), torch.tensor(besquet_features)
-        return img, torch.tensor(besquet_features)
+        return img_transform, torch.tensor(besquet_features)
 
 
 class TestFocusingTransform:

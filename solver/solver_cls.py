@@ -87,7 +87,7 @@ class Solver(pl.LightningModule):
             images, target_focus = batch_key
             image_count = images[0].shape[1]
             predictions = torch.cat([
-                self.model(images[0][:, i])  # images[1][:, i]
+                self.model(images[0][:, i])
                 for i in range(image_count)
             ], axis=0)
 
@@ -115,7 +115,7 @@ class Solver(pl.LightningModule):
             ))
             test_metrics["diff_protocol"].append((
                 output["diff_protocol"]["metrics"]["correct_pred"],
-                output["diff_protocol"]["metrics"]["correct_pred"]
+                output["diff_protocol"]["metrics"]["total"]
             ))
 
         for key, metrics in test_metrics.items():

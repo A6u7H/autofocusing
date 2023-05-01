@@ -5,16 +5,44 @@ import cv2
 from torch import Tensor
 
 
-def split_dataset(data, train_ratio: float = 0.8, smart_split: bool = True):
+def split_dataset(
+    data,
+    train_ratio: float = 0.8,
+    smart_split: bool = True,
+    two_image_pipeline: bool = False
+):
     if smart_split:
-        train_size = int(len(data) * train_ratio)
-        train_data = []
-        val_data = []
-        for i, (_, images) in enumerate(data.items()):
-            if i <= train_size:
-                train_data.extend(images)
-            else:
-                val_data.extend(images)
+        if two_image_pipeline:
+            train_size = int(len(data) * train_ratio)
+            train_data = []
+            val_data = []
+            for i, (_, images) in enumerate(data.items()):
+                defocus = list(map(
+                    lambda x: int(x.split("defocus")[1][:-4]),
+                    images
+                ))
+                defocus2id = dict(zip(defocus, np.arange(len(defocus))))
+                if i <= train_size:
+                    for defocus, idx in defocus2id.items():
+                        delta_defocus = defocus + 2000
+                        if delta_defocus in defocus2id:
+                            new_idx = defocus2id[delta_defocus]
+                            train_data.append((images[new_idx], images[idx]))
+                else:
+                    for defocus, idx in defocus2id.items():
+                        delta_defocus = defocus + 2000
+                        if delta_defocus in defocus2id:
+                            new_idx = defocus2id[delta_defocus]
+                            val_data.append((images[new_idx], images[idx]))
+        else:
+            train_size = int(len(data) * train_ratio)
+            train_data = []
+            val_data = []
+            for i, (_, images) in enumerate(data.items()):
+                if i <= train_size:
+                    train_data.extend(images)
+                else:
+                    val_data.extend(images)
     else:
         all_data = []
         for v in data.values():
