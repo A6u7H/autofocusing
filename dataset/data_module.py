@@ -1,4 +1,5 @@
 import pytorch_lightning as pl
+import numpy as np
 import os
 
 from pathlib import Path
@@ -14,6 +15,31 @@ class DataModule(pl.LightningDataModule):
     def __init__(self, config) -> None:
         super().__init__()
         self.config = config
+
+    @staticmethod
+    def pair_dataset(data):
+        seg2path = {}
+        for path in data:
+            # name = path.name
+            # defocus = int(name[7:-4])
+            seg_block = os.path.split(path)[0].split("/")[-1]
+            if seg_block not in seg2path:
+                seg2path[seg_block] = []
+            seg2path[seg_block].append(path)
+        test_data = []
+        for _, images in seg2path.items():
+            defocus = list(map(
+                lambda x: int(x.name[7:-4]),
+                images
+            ))
+            defocus2id = dict(zip(defocus, np.arange(len(defocus))))
+            for cur_defocus, idx in defocus2id.items():
+                delta_defocus = cur_defocus + 2000
+                if delta_defocus in defocus2id:
+                    new_idx = defocus2id[delta_defocus]
+                    test_data.append((images[idx], images[new_idx]))
+        return test_data
+
 
     def prepare_data(self):
         search_pattern = "**/*.jpg"
@@ -37,11 +63,16 @@ class DataModule(pl.LightningDataModule):
             for image_path in self.data_same_path.glob(search_pattern)
             if image_path.is_file()
         ]
+        if self.config.dataset.two_image_pipeline:
+            self.same_data = DataModule.pair_dataset(self.same_data)
+
         self.diff_data = [
             image_path
             for image_path in self.data_diff_path.glob(search_pattern)
             if image_path.is_file()
         ]
+        if self.config.dataset.two_image_pipeline:
+            self.diff_data = DataModule.pair_dataset(self.diff_data)
 
     def setup(self, stage: Optional[str] = None) -> None:
         train_transfrom = instantiate(self.config.dataset.train_transform)

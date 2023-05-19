@@ -34,6 +34,10 @@ class TrainFocusingTransform:
         self.transform = A.Compose([
             A.Resize(224, 224),
             A.Normalize(mean=mean, std=std),
+            # A.GaussNoise(var_limit=(0.05, 0.05)),
+            # A.CoarseDropout(max_height=10, max_width=10),
+            A.RandomBrightnessContrast(),
+            # A.RandomGridShuffle(grid=(56, 56)),
             ToTensorV2(),
         ])
         self.besquet_transform = get_besquet_features
@@ -41,8 +45,10 @@ class TrainFocusingTransform:
     def __call__(self, img):
         besquet_features = self.besquet_transform(img)
 
-        img_blur = cv2.medianBlur(img, 3)
-        img_transform = self.transform(image=img_blur)["image"]
+        # img_blur = cv2.medianBlur(img, 3)
+
+        img_transform = self.transform(image=img)["image"].type(torch.float)
+        # img_transform = (img_transform - img_transform.mean(dim=(1,2), keepdim=True)) / img_transform.std(dim=(1,2), keepdim=True)
 
         if self.add_fourier:
             magnitude_spectrum_tensor = get_fourier_channel(img)
@@ -73,8 +79,9 @@ class ValFocusingTransform:
 
     def __call__(self, img):
         besquet_features = self.besquet_transform(img)
-        img_blur = cv2.medianBlur(img, 3)
-        img_transform = self.transform(image=img_blur)["image"]
+        # img_blur = cv2.medianBlur(img, 3)
+        img_transform = self.transform(image=img)["image"].type(torch.float)
+        # img_transform = (img_transform - img_transform.mean(dim=(1,2), keepdim=True)) / img_transform.std(dim=(1,2), keepdim=True)
 
         if self.add_fourier:
             magnitude_spectrum_tensor = get_fourier_channel(img)
@@ -120,8 +127,10 @@ class TestFocusingTransform:
                 features = self.besquet_transform(img)
                 features_row.append(torch.tensor(features))
 
-                image = cv2.medianBlur(images[i][j], 3)
-                image = self.post_transform(image=image)["image"]
+                # image = cv2.medianBlur(images[i][j], 3)
+                image = images[i][j]
+                image = self.post_transform(image=image)["image"].type(torch.float)
+                # image = (image - image.mean(dim=(1,2), keepdim=True)) / image.std(dim=(1,2), keepdim=True)
                 if self.add_fourier:
                     magnitude_spectrum_tensor = get_fourier_channel(images[i][j])
                     image = torch.cat([

@@ -1,0 +1,8 @@
+_target_: models.efficientnet.EfficientNetLarge
+config:
+  pretrained: false
+  change_first_layer: false
+  weights: EfficientNet_B7_Weights.DEFAULT
+  freeze: false
+  input_dim: 2560
+  output_dim: 1

@@ -27,13 +27,13 @@ def split_dataset(
                         delta_defocus = defocus + 2000
                         if delta_defocus in defocus2id:
                             new_idx = defocus2id[delta_defocus]
-                            train_data.append((images[new_idx], images[idx]))
+                            train_data.append((images[idx], images[new_idx]))
                 else:
                     for defocus, idx in defocus2id.items():
                         delta_defocus = defocus + 2000
                         if delta_defocus in defocus2id:
                             new_idx = defocus2id[delta_defocus]
-                            val_data.append((images[new_idx], images[idx]))
+                            val_data.append((images[idx], images[new_idx]))
         else:
             train_size = int(len(data) * train_ratio)
             train_data = []

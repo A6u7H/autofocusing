@@ -46,38 +46,38 @@ test_dataloader:
 train_transform:
   _target_: dataset.transform.TrainFocusingTransform
   mean: 
-    - 0.485
-    - 0.456
-    - 0.406
+    - 0.5 # 0.485
+    - 0.5 # 0.456
+    - 0.5 # 0.406
   std:
-    - 0.229
-    - 0.224
-    - 0.225
-  add_fourier: true
+    - 0.5 # 0.229
+    - 0.5 # 0.224
+    - 0.5 # 0.225
+  add_fourier: false
 
 val_transform:
   _target_: dataset.transform.ValFocusingTransform
   mean: 
-    - 0.485
-    - 0.456
-    - 0.406
+    - 0.5 # 0.485
+    - 0.5 # 0.456
+    - 0.5 # 0.406
   std:
-    - 0.229
-    - 0.224
-    - 0.225
-  add_fourier: true
+    - 0.5 # 0.229
+    - 0.5 # 0.224
+    - 0.5 # 0.225
+  add_fourier: false
 
 test_transform:
   _target_: dataset.transform.TestFocusingTransform
   mean: 
-    - 0.485
-    - 0.456
-    - 0.406
+    - 0.5 # 0.485
+    - 0.5 # 0.456
+    - 0.5 # 0.406
   std:
-    - 0.229
-    - 0.224
-    - 0.225
-  add_fourier: true
+    - 0.5 # 0.229
+    - 0.5 # 0.224
+    - 0.5 # 0.225
+  add_fourier: false
   resize_size:
     - 1224
     - 1024

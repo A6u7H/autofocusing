@@ -1,6 +1,6 @@
 _target_: models.vit.VIT
 config:
-  weights: ViT_B_32_Weights.DEFAULT
+  weights: google/vit-base-patch16-224-in21k
   freeze: false
   input_dim: 768
   output_dim: 1

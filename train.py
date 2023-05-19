@@ -36,10 +36,10 @@ def main(config: DictConfig) -> None:
         logger=model_logger,
         callbacks=[checkpoint_callback, early_stopping]
     )
-    # trainer.fit(
-    #     model=solver,
-    #     datamodule=datamodule
-    # )
+    trainer.fit(
+        model=solver,
+        datamodule=datamodule
+    )
     # ckpt_path = "/home/dkrivenkov/program/autofocusing/experiments/mobilenet_4ch_cls/runs/2023-03-26_20-08-07/weight/epoch=6-step=90090.ckpt"
     trainer.test(
         model=solver,

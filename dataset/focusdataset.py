@@ -39,6 +39,7 @@ class FocusingDataset(Dataset):
             else:
                 defocus = int(match.group(1))
         image = cv2.imread(image_path)[..., ::-1]
+        image = cv2.medianBlur(image, 3)
 
         if self.transform:
             image = self.transform(image)
@@ -80,6 +81,7 @@ class TwoImagesFocusingDataset(Dataset):
 
         match_one = re.search(self.pattern, image_name_one)
         match_two = re.search(self.pattern, image_name_two)
+
         if match_one:
             if len(match_one.groups()) == 2:
                 _, defocus_one = int(match_one.group(1)), int(match_one.group(2))
@@ -90,19 +92,29 @@ class TwoImagesFocusingDataset(Dataset):
                 _, defocus_two = int(match_two.group(1)), int(match_two.group(2))
             else:
                 defocus_two = int(match_two.group(1))
-        image_one = cv2.imread(image_path_one)[..., ::-1]
-        image_two = cv2.imread(image_path_two)[..., ::-1]
+
+        image_one = cv2.imread(str(image_path_one))[..., ::-1]
+        image_two = cv2.medianBlur(image_one, 3)
+        # image_one, bisq_features_one = self.transform(image_one)
+
+        image_two = cv2.imread(str(image_path_two))[..., ::-1] 
+        image_two = cv2.medianBlur(image_two, 3)
+        # image_two, bisq_features_two = self.transform(image_two)
+
+        image = image_two - image_one
+        image = cv2.medianBlur(image, 3)
 
         if self.transform:
-            image_one, bisq_features_one = self.transform(image_one)
-            image_two, bisq_features_two = self.transform(image_two)
-            image = image_two - image_one
+            image, bisq_features_one = self.transform(image)
+            # image_one, bisq_features_one = self.transform(image_one)
+            # image_two, bisq_features_two = self.transform(image_two)
+            # image = image_two - image_one
         if self.target_transform:
             defocus_one = self.target_transform(defocus_one)
             defocus_two = self.target_transform(defocus_two)
             defocus = defocus_two
 
-        return (image, bisq_features_two), defocus
+        return (image, bisq_features_one), defocus
 
     def __len__(self):
         return len(self.images_data)

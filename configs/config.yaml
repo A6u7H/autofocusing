@@ -2,9 +2,9 @@ defaults:
 - _self_
 - dataset: rgb_dataset_reg_two
 - logger: wandb
-- model: custom_reg
+- model: efficientnet
 - trainer: mobilenet
 - optimizer: mobilenet_reg
 - hydra: default
 
-task_name: resnet_reg_two
+task_name: efficientnet_two_images
