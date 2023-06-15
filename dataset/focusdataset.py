@@ -44,9 +44,9 @@ class FocusingDataset(Dataset):
         if self.transform:
             image = self.transform(image)
         if self.target_transform:
-            defocus = self.target_transform(defocus)
+            defocus_label, defocus_continue = self.target_transform(defocus)
 
-        return image, defocus
+        return image, defocus_label, defocus_continue
 
     def __len__(self):
         return len(self.images_data)
@@ -110,9 +110,9 @@ class TwoImagesFocusingDataset(Dataset):
             # image_two, bisq_features_two = self.transform(image_two)
             # image = image_two - image_one
         if self.target_transform:
-            defocus_one = self.target_transform(defocus_one)
-            defocus_two = self.target_transform(defocus_two)
-            defocus = defocus_two
+            defocus_one_label, defocus_one_continue  = self.target_transform(defocus_one)
+            defocus_two_label, defocus_two_continue = self.target_transform(defocus_two)
+            defocus = defocus_two_continue
 
         return (image, bisq_features_one), defocus
 

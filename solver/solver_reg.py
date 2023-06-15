@@ -12,6 +12,7 @@ class Solver(pl.LightningModule):
         self.model = model
         self.config = config
         self.focus_loss = instantiate(self.config.optimizer.loss)
+        self.focus_metric = instantiate(self.config.optimizer.metrics)
 
     def forward(self, x):
         return self.model(x)
@@ -39,17 +40,10 @@ class Solver(pl.LightningModule):
 
     @torch.no_grad()
     def metric_fn(self, pred: Tensor, target: Tensor) -> Tensor:
-        focus_metric = instantiate(self.config.optimizer.metrics)
-        return focus_metric(pred, target)
-
-    def get_metrics(self, pred: Tensor, target: Tensor) -> Tensor:
-        pred = pred.view(-1)
-        mae_value = torch.abs(pred.view(-1) - target).mean()
-        mape_value = torch.abs(pred - target) / max(torch.abs(pred))
-        return mae_value, mape_value
+        return self.focus_metric(pred, target)
 
     def training_step(self, batch: Tensor, batch_idx: int):
-        image, target_focus = batch
+        image, _, target_focus = batch
         pred_focus = self.model(image[0])
         loss = self.loss_fn(pred_focus, target_focus)
         metrics = self.metric_fn(pred_focus, target_focus)
@@ -68,7 +62,7 @@ class Solver(pl.LightningModule):
         self.log("train/l1_loss_std", torch.std(l1_losses))
 
     def validation_step(self, batch: Tensor, batch_idx: int):
-        image, target_focus = batch
+        image, _, target_focus = batch
         pred_focus = self.model(image[0])
         loss = self.loss_fn(pred_focus, target_focus)
         metrics = self.metric_fn(pred_focus, target_focus)
@@ -82,7 +76,7 @@ class Solver(pl.LightningModule):
     def test_step(self, batch: Tensor, batch_idx: int):
         test_info = {}
         for key, batch_key in batch.items():
-            images, target_focus = batch_key
+            images, _, target_focus = batch
             image_count = images[0].shape[1]
             predictions = torch.cat([
                 self.model(images[0][:, i]) #  images[1][:, i]

@@ -6,22 +6,12 @@ class FocusMetrics(nn.Module):
     def __init__(self, config):
         super(FocusMetrics, self).__init__()
         self.config = config
-        self.grid = torch.tensor(
-            [i for i in range(config.min, config.max, config.step)]
-        )
         self.l1_loss = nn.L1Loss()
 
     def forward(self, prediction, target):
-        device = prediction.device
-        self.grid = self.grid.to(device)
         l1_value = self.l1_loss(prediction.view(-1), target)
-        repeated = prediction.repeat(1, len(self.grid))
-        diff = abs(repeated - self.grid)
-        class_pred = self.grid[diff.min(axis=1)[1]]
         return {
             "l1_loss": l1_value.item(),
-            "correct_pred": (class_pred == target).sum().item(),
-            "total": len(target)
         }
 
 
@@ -37,4 +27,22 @@ class FocusMetricsCls(nn.Module):
         return {
             "correct_pred": (class_pred == target).sum().item(),
             "total": len(target)
+        }
+
+
+class FocusMetricsMulti(nn.Module):
+    def __init__(self, config):
+        super(FocusMetricsMulti, self).__init__()
+        self.config = config
+        self.l1_loss = nn.L1Loss()
+
+    def forward(self, prediction_reg, prediction_cls, target_reg, target_cls, mode="train"):
+        l1_value = self.l1_loss(prediction_reg.view(-1), target_reg)
+        class_pred = prediction_cls.argmax(-1)
+        if mode == "test":
+            class_pred = torch.median(class_pred, dim=0, keepdim=True)[0]
+        return {
+            "correct_pred": (class_pred == target_cls).sum().item(),
+            "l1_loss": l1_value.item(),
+            "total": len(target_cls)
         }

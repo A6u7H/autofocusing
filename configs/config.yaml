@@ -1,10 +1,10 @@
 defaults:
 - _self_
-- dataset: rgb_dataset_reg_two
+- dataset: rgb_dataset_multi
 - logger: wandb
-- model: efficientnet
+- model: effientnet_multi
 - trainer: mobilenet
-- optimizer: mobilenet_reg
+- optimizer: efficienet_multi
 - hydra: default
 
-task_name: efficientnet_two_images
+task_name: effientnet_multi

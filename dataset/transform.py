@@ -169,12 +169,21 @@ class TragetTransform:
 
     def __call__(self, defocus):
         if self.task_type == "reg":
-            return torch.tensor(defocus/1000, dtype=torch.float32)
+            return None, torch.tensor(defocus/1000, dtype=torch.float32)
         elif self.task_type == "cls":
             if defocus < self.label_range[0]:
-                return 0
+                return 0, None
             if defocus > self.label_range[1]:
-                return self.num_segment - 1
+                return self.num_segment - 1, None
             for segment, label in self.segments2label.items():
                 if defocus >= segment[0] and defocus < segment[1]:
-                    return label
+                    return label, None
+        elif self.task_type == "multi":
+            continue_value = torch.tensor(defocus/1000, dtype=torch.float32)
+            if defocus < self.label_range[0]:
+                return 0, continue_value
+            if defocus > self.label_range[1]:
+                return self.num_segment - 1, continue_value
+            for segment, label in self.segments2label.items():
+                if defocus >= segment[0] and defocus < segment[1]:
+                    return label, continue_value
